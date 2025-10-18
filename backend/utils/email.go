@@ -89,14 +89,11 @@ func SendWelcomeEmail(toEmail, userName string) error {
 
 	subject := "Welcome! Your Account is Verified"
 	body := fmt.Sprintf(`
-Hello %s,
+Hola %s,
 
-Welcome to our platform! Your email has been successfully verified.
+¡Bienvenido a nuestra plataforma! Tu correo electrónico ha sido verificado con éxito.
 
-You can now log in and start using our services.
-
-Best regards,
-Users Microservice Team
+Ahora puedes iniciar sesión y comenzar a utilizar UniChat.
 `, userName)
 
 	message := []byte(fmt.Sprintf("Subject: %s\r\n\r\n%s", subject, body))
