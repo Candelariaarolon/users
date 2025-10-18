@@ -17,14 +17,16 @@ func mapUrls() {
 		MaxAge:           12 * time.Hour, //almacena la configuracion de CORS por 12 horas
 	}))
 
-	router.GET("/activities/:id", controllers.VerifyToken, controllers.GetActivityByID)   //trae una actividad por id
-	router.GET("/activities", controllers.VerifyToken, controllers.GetFilteredActivities) //trae todas las actividades o filtradas por categoria, nombre o descripcion
-	router.POST("/users/login", controllers.Login)
-	router.POST("/users/inscription", controllers.VerifyToken, controllers.Inscription)
-	router.GET("/users/:id/activities", controllers.VerifyToken, controllers.GetUserActivities) //trae todas las actividades de un usuario
-	router.GET("/users/:id", controllers.VerifyToken, controllers.GetUserByID)                  //trae un usuario por id
-	router.POST("/activity", controllers.VerifyAdminToken, controllers.CreateActivity)          //crea una actividad
-	router.DELETE("/activity/:id", controllers.VerifyAdminToken, controllers.DeleteActivity)
-	router.PUT("/activity/:id", controllers.VerifyAdminToken, controllers.ModifyActivity)
-	router.GET("/users/admin", controllers.VerifyAdminToken)
+	// Public endpoints (no authentication required)
+	router.POST("/users/register", controllers.Register)                   // Register new user
+	router.POST("/users/verify-email", controllers.VerifyEmail)            // Verify email with code
+	router.POST("/users/resend-code", controllers.ResendVerificationCode) // Resend verification code
+	router.POST("/users/login", controllers.Login)                         // Login with credentials
+	router.POST("/users/refresh-token", controllers.RefreshToken)         // Refresh access token
+
+	// Protected endpoints (authentication required)
+	router.GET("/users/:id", controllers.VerifyToken, controllers.GetUserByID) // Get user by ID
+
+	// Admin endpoints (admin authentication required)
+	router.GET("/users/admin", controllers.VerifyAdminToken) // Verify admin token
 }

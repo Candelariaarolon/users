@@ -3,11 +3,11 @@ version: "3.9"
 services:
   db:
     image: mysql:8.0
-    container_name: arqui-software-db
+    container_name: users-db
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: rootpass
-      MYSQL_DATABASE: arqui_db
+      MYSQL_DATABASE: users_db
       MYSQL_USER: appuser
       MYSQL_PASSWORD: 1234
     ports:
@@ -24,35 +24,26 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: mi-backend
+    container_name: users-backend
     restart: unless-stopped
     environment:
       DB_HOST: db
       DB_PORT: "3306"
       DB_USER: appuser
       DB_PASS: 1234
-      DB_NAME: arqui_db
+      DB_NAME: users_db
+      # SMTP Configuration (optional - for email verification)
+      # Uncomment and configure these to enable email sending
+      SMTP_HOST: smtp.gmail.com
+      SMTP_PORT: "587"
+      SMTP_USER: matiasvidal2404@gmail.com
+      SMTP_PASS: "efac tqpy kryf vxfb"
+      SMTP_FROM: matiasvidal2404@gmail.com
     ports:
       - "8080:8080"
     depends_on:
       db:
         condition: service_healthy
-
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    container_name: mi-frontend
-    restart: unless-stopped
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
-    ports:
-      - "3000:3000"
-    environment:
-      CHOKIDAR_USEPOLLING: "true"
-    depends_on:
-      - backend
 
 volumes:
   db_data:

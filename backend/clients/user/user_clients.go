@@ -3,6 +3,7 @@ package clients
 import (
 	"backend/model"
 	"fmt"
+	"time"
 
 	"gorm.io/gorm"
 )
@@ -19,11 +20,10 @@ func GetUserByUsername(username string) (model.UserModel, error) {
 	return user, nil
 }
 
-// getuserbyid
+// GetUserByID gets a user by ID
 func GetUserByID(id int) (model.UserModel, error) {
 	var user model.UserModel
-	// Es equivalente a hacer un select * from users where id = id
-	query := Db.Where("id = ?", id).Preload("InscriptionsUser").First(&user)
+	query := Db.Where("id = ?", id).First(&user)
 	if query.Error != nil {
 		return model.UserModel{}, fmt.Errorf("failed to get user by id: %w", query.Error)
 	}
@@ -36,19 +36,62 @@ func GetUserByID(id int) (model.UserModel, error) {
 	return user, nil
 }
 
-func GetUserActivities(UserId int) ([]model.ActivityModel, error) {
+// CreateUser creates a new user in the database
+func CreateUser(user model.UserModel) (model.UserModel, error) {
+	result := Db.Create(&user)
+	if result.Error != nil {
+		return model.UserModel{}, fmt.Errorf("failed to create user: %w", result.Error)
+	}
+	return user, nil
+}
+
+// UpdateUser updates an existing user
+func UpdateUser(user model.UserModel) error {
+	result := Db.Save(&user)
+	if result.Error != nil {
+		return fmt.Errorf("failed to update user: %w", result.Error)
+	}
+	return nil
+}
+
+// GetUserByEmail gets a user by email address
+func GetUserByEmail(email string) (model.UserModel, error) {
 	var user model.UserModel
-
-	Db.Preload("InscriptionsUser.Activity").First(&user, UserId)
-
-	var activitiesArray model.Activities
-	for _, insc := range user.InscriptionsUser {
-		activitiesArray = append(activitiesArray, insc.Activity)
+	query := Db.Where("email = ?", email).First(&user)
+	if query.Error != nil {
+		if query.Error == gorm.ErrRecordNotFound {
+			return model.UserModel{}, gorm.ErrRecordNotFound
+		}
+		return model.UserModel{}, fmt.Errorf("failed to get user by email: %w", query.Error)
 	}
+	return user, nil
+}
 
-	if len(activitiesArray) == 0 {
-		err := gorm.ErrRecordNotFound
-		return activitiesArray, err
+// VerifyUserEmail verifies user email and clears verification code
+func VerifyUserEmail(userID int) error {
+	result := Db.Model(&model.UserModel{}).
+		Where("id = ?", userID).
+		Updates(map[string]interface{}{
+			"is_verified":       true,
+			"verification_code": nil,
+			"code_expires_at":   nil,
+		})
+	if result.Error != nil {
+		return fmt.Errorf("failed to verify user email: %w", result.Error)
 	}
-	return activitiesArray, nil
+	return nil
+}
+
+// UpdateVerificationCode updates the verification code and expiration
+func UpdateVerificationCode(userID int, code string, expiresAt time.Time) error {
+	result := Db.Model(&model.UserModel{}).
+		Where("id = ?", userID).
+		Updates(map[string]interface{}{
+			"verification_code": code,
+			"code_expires_at":   expiresAt,
+		})
+	if result.Error != nil {
+		return fmt.Errorf("failed to update verification code: %w", result.Error)
+	}
+	return nil
 }

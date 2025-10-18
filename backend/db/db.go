@@ -1,8 +1,6 @@
 package db
 
 import (
-	activityClient "backend/clients/activity"
-	inscriptionClient "backend/clients/inscription"
 	userCLient "backend/clients/user"
 	"backend/model"
 	"fmt"
@@ -39,22 +37,15 @@ func init() {
 	} else {
 		log.Info("Connection Established")
 	}
-	activityClient.Db = DB
 	userCLient.Db = DB
-	inscriptionClient.Db = DB
 
 	log.Info("Finishing Migration Database Tables")
 }
 
 func StartDbEngine() {
-	// Migrating all classes model.
-	if err := DB.AutoMigrate(&model.ActivityModel{}); err != nil {
-		panic(fmt.Sprintf("Error creating table: %v", err))
+	// Migrating User and VerificationToken models.
+	if err := DB.AutoMigrate(&model.UserModel{}, &model.VerificationToken{}); err != nil {
+		panic(fmt.Sprintf("Error creating tables: %v", err))
 	}
-	if err := DB.AutoMigrate(&model.UserModel{}); err != nil {
-		panic(fmt.Sprintf("Error creating table: %v", err))
-	}
-	if err := DB.AutoMigrate(&model.InscriptionModel{}); err != nil {
-		panic(fmt.Sprintf("Error creating table: %v", err))
-	}
+	log.Info("Database tables migrated successfully")
 }

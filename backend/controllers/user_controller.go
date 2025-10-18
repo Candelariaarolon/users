@@ -9,6 +9,57 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+func Register(ctx *gin.Context) {
+	var request dto.RegisterRequest
+
+	if err := ctx.ShouldBindJSON(&request); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request: " + err.Error()})
+		return
+	}
+
+	response, err := services.Register(request)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusCreated, response)
+}
+
+func VerifyEmail(ctx *gin.Context) {
+	var request dto.VerifyEmailRequest
+
+	if err := ctx.ShouldBindJSON(&request); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request: " + err.Error()})
+		return
+	}
+
+	response, err := services.VerifyEmail(request)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, response)
+}
+
+func ResendVerificationCode(ctx *gin.Context) {
+	var request dto.ResendCodeRequest
+
+	if err := ctx.ShouldBindJSON(&request); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request: " + err.Error()})
+		return
+	}
+
+	err := services.ResendVerificationCode(request.Email)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"message": "Verification code sent successfully"})
+}
+
 func Login(ctx *gin.Context) {
 	var request dto.LoginRequest
 	// recibo usuario y contraseña desde el body de la request
@@ -18,19 +69,15 @@ func Login(ctx *gin.Context) {
 	}
 
 	// llamar al servicio de login
-	// el servicio de login devuelve el id del usuario y el token
-	token, name, surname, err := services.Login(request.Email, request.Password)
+	// el servicio de login devuelve access token, refresh token, nombre y apellido
+	response, err := services.Login(request.Email, request.Password)
 	if err != nil {
 		ctx.JSON(http.StatusForbidden, gin.H{"error": "No se pudo iniciar sesion"})
 		return
 	}
-	// si el login es exitoso, devolver el id del usuario y el token
-	// el token es un string que se genera al momento de hacer login
-	ctx.JSON(http.StatusOK, dto.LoginResponse{
-		Token:   token,
-		Name:    name,
-		Surname: surname,
-	})
+
+	// si el login es exitoso, devolver la respuesta con ambos tokens
+	ctx.JSON(http.StatusOK, response)
 }
 
 func GetUserByID(ctx *gin.Context) {
@@ -53,26 +100,6 @@ func GetUserByID(ctx *gin.Context) {
 	}
 	// si el usuario existe, devolver el usuario
 	ctx.JSON(http.StatusOK, user)
-}
-
-func GetUserActivities(ctx *gin.Context) {
-	// recibo el id del usuario desde el path de la request
-	userID := ctx.Param("id")
-	// hago string a int
-	userIDInt, err := strconv.Atoi(userID)
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
-		return
-	}
-
-	// llamar al servicio de get user activities
-	activities, err2 := services.GetUserActivities(userIDInt)
-	if err2 != nil {
-		ctx.JSON(http.StatusNotFound, gin.H{"error": "El usuario no tiene actividades"})
-		return
-	}
-	// si el usuario existe, devolver las actividades
-	ctx.JSON(http.StatusOK, activities)
 }
 
 func VerifyToken(ctx *gin.Context) {
@@ -109,4 +136,22 @@ func VerifyAdminToken(ctx *gin.Context) {
 		ctx.Abort()
 		return
 	}
+}
+
+func RefreshToken(ctx *gin.Context) {
+	var request dto.RefreshTokenRequest
+
+	if err := ctx.ShouldBindJSON(&request); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request: " + err.Error()})
+		return
+	}
+
+	// llamar al servicio de refresh token
+	response, err := services.RefreshAccessToken(request.RefreshToken)
+	if err != nil {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, response)
 }

@@ -1,0 +1,344 @@
+{
+	"info": {
+		"_postman_id": "users-microservice-auth-v2",
+		"name": "Users Microservice - Auth with Refresh Tokens",
+		"description": "Colección completa de endpoints para el microservicio de autenticación de usuarios con registro, verificación por email, login, refresh tokens y gestión de roles.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "1. Register User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"password123\",\n  \"first_name\": \"Test\",\n  \"last_name\": \"User\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/users/register",
+							"host": ["{{base_url}}"],
+							"path": ["users", "register"]
+						},
+						"description": "Registra un nuevo usuario en el sistema. Genera un código de verificación de 6 dígitos que se envía por email (o se muestra en consola si SMTP no está configurado). El código es válido por 15 minutos.\n\n**Validaciones:**\n- Email válido (formato)\n- Password mínimo 6 caracteres\n- first_name y last_name requeridos"
+					},
+					"response": [
+						{
+							"name": "Success",
+							"originalRequest": {
+								"method": "POST",
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"password123\",\n  \"first_name\": \"Test\",\n  \"last_name\": \"User\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/users/register",
+									"host": ["{{base_url}}"],
+									"path": ["users", "register"]
+								}
+							},
+							"status": "Created",
+							"code": 201,
+							"body": "{\n  \"message\": \"User registered successfully. Please check your email for verification code.\",\n  \"email\": \"test@example.com\"\n}"
+						}
+					]
+				},
+				{
+					"name": "2. Verify Email",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Guardar tokens automáticamente",
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.collectionVariables.set(\"access_token\", jsonData.access_token);",
+									"    pm.collectionVariables.set(\"refresh_token\", jsonData.refresh_token);",
+									"    console.log(\"Access Token guardado:\", jsonData.access_token);",
+									"    console.log(\"Refresh Token guardado:\", jsonData.refresh_token);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"test@example.com\",\n  \"code\": \"123456\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/users/verify-email",
+							"host": ["{{base_url}}"],
+							"path": ["users", "verify-email"]
+						},
+						"description": "Verifica el email del usuario con el código de 6 dígitos recibido. Si el código es válido y no ha expirado, la cuenta se activa y se retornan access y refresh tokens.\n\n**Nota:** El código expira en 15 minutos. Este endpoint guarda automáticamente ambos tokens."
+					},
+					"response": [
+						{
+							"name": "Success",
+							"originalRequest": {
+								"method": "POST",
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"email\": \"test@example.com\",\n  \"code\": \"123456\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/users/verify-email",
+									"host": ["{{base_url}}"],
+									"path": ["users", "verify-email"]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"body": "{\n  \"message\": \"Email verified successfully. You can now log in.\",\n  \"access_token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\",\n  \"refresh_token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\"\n}"
+						}
+					]
+				},
+				{
+					"name": "3. Resend Verification Code",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"test@example.com\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/users/resend-code",
+							"host": ["{{base_url}}"],
+							"path": ["users", "resend-code"]
+						},
+						"description": "Reenvía un nuevo código de verificación al email del usuario. Útil si el código anterior expiró o no llegó.\n\n**Nota:** Genera un nuevo código válido por 15 minutos más."
+					},
+					"response": []
+				},
+				{
+					"name": "4. Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Guardar tokens automáticamente",
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.collectionVariables.set(\"access_token\", jsonData.access_token);",
+									"    pm.collectionVariables.set(\"refresh_token\", jsonData.refresh_token);",
+									"    console.log(\"Access Token guardado:\", jsonData.access_token);",
+									"    console.log(\"Refresh Token guardado:\", jsonData.refresh_token);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/users/login",
+							"host": ["{{base_url}}"],
+							"path": ["users", "login"]
+						},
+						"description": "Inicia sesión con email y password. Retorna un access token (10 min) y un refresh token (7 días).\n\n**Importante:** Solo funciona si el email ha sido verificado.\n\n**Tokens:**\n- Access Token: Expira en 10 minutos, usar para requests protegidos\n- Refresh Token: Expira en 7 días, usar para obtener nuevo access token"
+					},
+					"response": [
+						{
+							"name": "Success",
+							"originalRequest": {
+								"method": "POST",
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"password123\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/users/login",
+									"host": ["{{base_url}}"],
+									"path": ["users", "login"]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"body": "{\n  \"access_token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\",\n  \"refresh_token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\",\n  \"name\": \"Test\",\n  \"surname\": \"User\"\n}"
+						}
+					]
+				},
+				{
+					"name": "5. Refresh Access Token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Guardar nuevos tokens automáticamente",
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.collectionVariables.set(\"access_token\", jsonData.access_token);",
+									"    pm.collectionVariables.set(\"refresh_token\", jsonData.refresh_token);",
+									"    console.log(\"Nuevos tokens guardados\");",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"refresh_token\": \"{{refresh_token}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/users/refresh-token",
+							"host": ["{{base_url}}"],
+							"path": ["users", "refresh-token"]
+						},
+						"description": "Usa el refresh token para obtener un nuevo access token y refresh token. Usar cuando el access token expira.\n\n**Importante:**\n- El refresh token debe ser válido (no expirado)\n- Genera nuevos access y refresh tokens\n- Los tokens antiguos quedan invalidados"
+					},
+					"response": [
+						{
+							"name": "Success",
+							"originalRequest": {
+								"method": "POST",
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"refresh_token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/users/refresh-token",
+									"host": ["{{base_url}}"],
+									"path": ["users", "refresh-token"]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"body": "{\n  \"access_token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\",\n  \"refresh_token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\"\n}"
+						}
+					]
+				}
+			],
+			"description": "Endpoints públicos de autenticación que no requieren token JWT en el header."
+		},
+		{
+			"name": "Users",
+			"item": [
+				{
+					"name": "Get User By ID",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/users/:id",
+							"host": ["{{base_url}}"],
+							"path": ["users", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1",
+									"description": "ID del usuario a obtener"
+								}
+							]
+						},
+						"description": "Obtiene la información de un usuario por su ID.\n\n**Requiere:** Access Token válido en el header Authorization.\n\n**Nota:** Este endpoint usa automáticamente el access_token guardado."
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints protegidos que requieren access token."
+		},
+		{
+			"name": "Admin",
+			"item": [
+				{
+					"name": "Verify Admin Token",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/users/admin",
+							"host": ["{{base_url}}"],
+							"path": ["users", "admin"]
+						},
+						"description": "Verifica que el access token pertenezca a un usuario administrador.\n\n**Requiere:** Access Token de un usuario con `is_admin: true`."
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints que requieren permisos de administrador."
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8080",
+			"type": "string"
+		},
+		{
+			"key": "access_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "refresh_token",
+			"value": "",
+			"type": "string"
+		}
+	]
+}
