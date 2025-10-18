@@ -1,0 +1,78 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+.my-activities-wrapper {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  position: relative;
+}
+
+.my-activities-container {
+  position: absolute;
+  top: 10%;
+  transform: translateY(0); /* empieza desde el centro hacia abajo */
+  width: 100%;
+  max-width: 900px;
+  padding: 30px 20px;
+}
+
+
+.title {
+  font-size: 2.5rem;
+  color: #FF4B2B;
+  margin-top: 40px;
+  white-space: nowrap;
+  width: 100%;
+  text-align: right;
+  padding-right: 40px;
+  margin-bottom: 40px;
+}
+
+.activities-grid {
+  margin-top: 70px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* 3 columnas */
+  gap: 30px;
+  width: 170vh;
+  margin-left: -520px;
+}
+
+.activity-card {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  padding: 20px;
+  text-align: left;
+}
+
+.ver-detalles-btn {
+  background: #db4f0e;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  padding: 10px 20px;
+  transition: background 0.2s;
+}
+
+.ver-detalles-btn:hover {
+  background: #b93e09;
+}
+
+.volver-btn {
+  position: absolute;
+  top: 30px;
+  right: 30px;
+  margin-left: 1200px;
+  background: #db4f0e;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+}
