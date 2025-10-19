@@ -28,5 +28,6 @@ func mapUrls() {
 	router.GET("/users/:id", controllers.VerifyToken, controllers.GetUserByID) // Get user by ID
 
 	// Admin endpoints (admin authentication required)
-	router.GET("/users/admin", controllers.VerifyAdminToken) // Verify admin token
+	router.GET("/users/admin", controllers.VerifyAdminToken)                       // Verify admin token
+	router.POST("/users/promote-admin", controllers.VerifyAdminToken, controllers.PromoteToAdmin) // Promote user to admin (admin only)
 }

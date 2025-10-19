@@ -243,3 +243,28 @@ func RefreshAccessToken(refreshToken string) (dto.RefreshTokenResponse, error) {
 		RefreshToken: newRefreshToken,
 	}, nil
 }
+
+// PromoteToAdmin promotes a user to admin status
+// This should only be called by existing admins
+func PromoteToAdmin(userID int) error {
+	// Check if user exists
+	user, err := userCLient.GetUserByID(userID)
+	if err != nil {
+		log.Println("Error getting user by ID:", err)
+		return fmt.Errorf("user not found")
+	}
+
+	// Check if already admin
+	if user.IsAdmin {
+		return fmt.Errorf("user is already an admin")
+	}
+
+	// Promote to admin
+	err = userCLient.PromoteToAdmin(userID)
+	if err != nil {
+		log.Println("Error promoting user to admin:", err)
+		return fmt.Errorf("error promoting user to admin: %w", err)
+	}
+
+	return nil
+}

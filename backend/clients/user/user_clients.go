@@ -95,3 +95,17 @@ func UpdateVerificationCode(userID int, code string, expiresAt time.Time) error 
 	}
 	return nil
 }
+
+// PromoteToAdmin promotes a user to admin status
+func PromoteToAdmin(userID int) error {
+	result := Db.Model(&model.UserModel{}).
+		Where("id = ?", userID).
+		Update("is_admin", true)
+	if result.Error != nil {
+		return fmt.Errorf("failed to promote user to admin: %w", result.Error)
+	}
+	if result.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+	return nil
+}

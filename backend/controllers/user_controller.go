@@ -155,3 +155,21 @@ func RefreshToken(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, response)
 }
+
+func PromoteToAdmin(ctx *gin.Context) {
+	var request dto.PromoteToAdminRequest
+
+	if err := ctx.ShouldBindJSON(&request); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request: " + err.Error()})
+		return
+	}
+
+	// llamar al servicio de promover a admin
+	err := services.PromoteToAdmin(request.UserID)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"message": "User promoted to admin successfully"})
+}

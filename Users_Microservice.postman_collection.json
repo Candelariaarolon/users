@@ -319,6 +319,58 @@
 						"description": "Verifica que el access token pertenezca a un usuario administrador.\n\n**Requiere:** Access Token de un usuario con `is_admin: true`."
 					},
 					"response": []
+				},
+				{
+					"name": "Promote User to Admin",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"user_id\": 2\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/users/promote-admin",
+							"host": ["{{base_url}}"],
+							"path": ["users", "promote-admin"]
+						},
+						"description": "Promueve un usuario a administrador.\n\n**Requiere:** Access Token de un usuario administrador existente.\n\n**Nota:** Solo un admin puede promover a otros usuarios a admin."
+					},
+					"response": [
+						{
+							"name": "Success",
+							"originalRequest": {
+								"method": "POST",
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"user_id\": 2\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/users/promote-admin",
+									"host": ["{{base_url}}"],
+									"path": ["users", "promote-admin"]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"body": "{\n  \"message\": \"User promoted to admin successfully\"\n}"
+						}
+					]
 				}
 			],
 			"description": "Endpoints que requieren permisos de administrador."
