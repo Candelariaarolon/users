@@ -2,6 +2,8 @@ package utils
 
 import (
 	"fmt"
+	"log"
+	"os"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -12,9 +14,16 @@ const (
 	jwtDuration = 10 * time.Minute
 	// Refresh token expiration time (longer)
 	refreshTokenDuration = 7 * 24 * time.Hour // 7 days
-	// JWT secret key
-	jwtSecret = "jwtSecret"
 )
+
+var jwtSecret string
+
+func init() {
+	jwtSecret = os.Getenv("JWT_SECRET")
+	if jwtSecret == "" {
+		log.Fatal("JWT_SECRET environment variable is not set")
+	}
+}
 
 type CustomClaims struct {
 	IsAdmin bool `json:"is_admin"`

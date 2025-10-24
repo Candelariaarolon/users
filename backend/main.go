@@ -5,11 +5,18 @@ import (
 	"backend/app" //importo modulo propio
 	"backend/db"  //importo modulo propio
 	_ "fmt"       //importo libreria externa
+	"log"
 
 	_ "github.com/gin-gonic/gin" //importo un link
+	"github.com/joho/godotenv"
 )
 
 func main() {
+	// Load .env file
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
 
 	//variable que me apunta al llamado
 

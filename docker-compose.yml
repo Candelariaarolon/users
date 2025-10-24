@@ -32,6 +32,8 @@ services:
       DB_USER: appuser
       DB_PASS: 1234
       DB_NAME: users_db
+      # JWT Configuration (256-bit secret)
+      JWT_SECRET: Jt5Te5WjUV13hI3IFra04Al8S4YiniGTMPi7+Ai9fUE=
       # SMTP Configuration (optional - for email verification)
       # Uncomment and configure these to enable email sending
       SMTP_HOST: smtp.gmail.com
