@@ -48,4 +48,29 @@ func StartDbEngine() {
 		panic(fmt.Sprintf("Error creating tables: %v", err))
 	}
 	log.Info("Database tables migrated successfully")
+
+	// Seed default admin user
+	seedAdminUser()
+}
+
+// seedAdminUser creates the default admin user if it doesn't exist
+func seedAdminUser() {
+	var count int64
+	DB.Model(&model.UserModel{}).Where("email = ?", "admin@unichat.com").Count(&count)
+
+	if count == 0 {
+		// Use raw SQL to avoid time.Time zero value issues with nullable datetime fields
+		result := DB.Exec(`
+			INSERT INTO user_models (email, password_hash, first_name, last_name, is_admin, is_verified, created_at, verification_code, code_expires_at)
+			VALUES (?, ?, ?, ?, ?, ?, NOW(), NULL, NULL)
+		`, "admin@unichat.com", "240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9", "Admin", "UniChat", true, true)
+
+		if result.Error != nil {
+			log.Warnf("Failed to create admin user: %v", result.Error)
+		} else {
+			log.Info("✓ Default admin user created (admin@unichat.com / admin123)")
+		}
+	} else {
+		log.Info("✓ Admin user already exists")
+	}
 }
