@@ -30,10 +30,10 @@ func mapUrls() {
 	router.POST("/users/login", controllers.Login)                         // Login with credentials
 	router.POST("/users/refresh-token", controllers.RefreshToken)         // Refresh access token
 
+	// Admin endpoints (admin authentication required) — must be before /users/:id to avoid wildcard conflict
+	router.GET("/users/admin", controllers.VerifyAdminToken)                                      // Verify admin token
+	router.POST("/users/promote-admin", controllers.VerifyAdminToken, controllers.PromoteToAdmin) // Promote user to admin (admin only)
+
 	// Protected endpoints (authentication required)
 	router.GET("/users/:id", controllers.VerifyToken, controllers.GetUserByID) // Get user by ID
-
-	// Admin endpoints (admin authentication required)
-	router.GET("/users/admin", controllers.VerifyAdminToken)                       // Verify admin token
-	router.POST("/users/promote-admin", controllers.VerifyAdminToken, controllers.PromoteToAdmin) // Promote user to admin (admin only)
 }
