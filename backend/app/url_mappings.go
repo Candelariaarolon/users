@@ -2,14 +2,20 @@ package app
 
 import (
 	"backend/controllers"
+	"os"
 	"time"
 
 	"github.com/gin-contrib/cors"
 )
 
 func mapUrls() {
+	allowedOrigins := []string{"http://localhost:3000", "http://localhost:5173"}
+	if origin := os.Getenv("CORS_ALLOWED_ORIGIN"); origin != "" {
+		allowedOrigins = append(allowedOrigins, origin)
+	}
+
 	router.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:3000"},
+		AllowOrigins:     allowedOrigins,
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
 		ExposeHeaders:    []string{"Content-Length"},
