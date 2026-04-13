@@ -1,7 +1,7 @@
 FROM golang:latest
 
 WORKDIR /app
-ARG CACHEBUST=1
+ARG CACHEBUST=2
 COPY . .
 
 RUN go mod tidy
