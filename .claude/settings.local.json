@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -X OPTIONS https://users-production-b617.up.railway.app/users/register -H 'Origin: https://unichatfront-production-aa49.up.railway.app' -H 'Access-Control-Request-Method: POST' -H 'Access-Control-Request-Headers: Content-Type' -v)"
+    ]
+  }
+}
