@@ -2,6 +2,7 @@ package utils
 
 import (
 	"crypto/rand"
+	"crypto/tls"
 	"fmt"
 	"math/big"
 	"net/smtp"
@@ -57,15 +58,10 @@ Users Microservice Team
 
 	message := []byte(fmt.Sprintf("Subject: %s\r\n\r\n%s", subject, body))
 
-	// Setup authentication
-	auth := smtp.PlainAuth("", smtpUser, smtpPass, smtpHost)
-
-	// Send email
 	addr := fmt.Sprintf("%s:%s", smtpHost, smtpPort)
-	err := smtp.SendMail(addr, auth, fromEmail, []string{toEmail}, message)
+	err := sendMail(addr, smtpHost, smtpUser, smtpPass, fromEmail, toEmail, message)
 	if err != nil {
 		log.Error("Failed to send email:", err)
-		// In development, still log the code
 		fmt.Printf("\n=== VERIFICATION CODE FOR %s (EMAIL FAILED) ===\n%s\n===============================\n", toEmail, code)
 		return err
 	}
@@ -97,10 +93,9 @@ Ahora puedes iniciar sesión y comenzar a utilizar UniChat.
 `, userName)
 
 	message := []byte(fmt.Sprintf("Subject: %s\r\n\r\n%s", subject, body))
-	auth := smtp.PlainAuth("", smtpUser, smtpPass, smtpHost)
 	addr := fmt.Sprintf("%s:%s", smtpHost, smtpPort)
 
-	err := smtp.SendMail(addr, auth, fromEmail, []string{toEmail}, message)
+	err := sendMail(addr, smtpHost, smtpUser, smtpPass, fromEmail, toEmail, message)
 	if err != nil {
 		log.Error("Failed to send welcome email:", err)
 		return err
@@ -108,4 +103,47 @@ Ahora puedes iniciar sesión y comenzar a utilizar UniChat.
 
 	log.Info("Welcome email sent successfully to:", toEmail)
 	return nil
+}
+
+// sendMail supports both port 465 (implicit TLS) and port 587 (STARTTLS).
+// Go's smtp.SendMail only handles STARTTLS, so port 465 requires a manual TLS dial.
+func sendMail(addr, host, user, pass, from, to string, message []byte) error {
+	auth := smtp.PlainAuth("", user, pass, host)
+
+	// Port 465 uses implicit TLS — dial TLS first, then speak SMTP.
+	if len(addr) >= 3 && addr[len(addr)-3:] == "465" {
+		tlsConfig := &tls.Config{ServerName: host}
+		conn, err := tls.Dial("tcp", addr, tlsConfig)
+		if err != nil {
+			return fmt.Errorf("tls dial: %w", err)
+		}
+		defer conn.Close()
+
+		client, err := smtp.NewClient(conn, host)
+		if err != nil {
+			return fmt.Errorf("smtp client: %w", err)
+		}
+		defer client.Close()
+
+		if err = client.Auth(auth); err != nil {
+			return fmt.Errorf("smtp auth: %w", err)
+		}
+		if err = client.Mail(from); err != nil {
+			return fmt.Errorf("smtp mail from: %w", err)
+		}
+		if err = client.Rcpt(to); err != nil {
+			return fmt.Errorf("smtp rcpt: %w", err)
+		}
+		w, err := client.Data()
+		if err != nil {
+			return fmt.Errorf("smtp data: %w", err)
+		}
+		if _, err = w.Write(message); err != nil {
+			return fmt.Errorf("smtp write: %w", err)
+		}
+		return w.Close()
+	}
+
+	// Port 587 (or any other): standard STARTTLS via smtp.SendMail.
+	return smtp.SendMail(addr, auth, from, []string{to}, message)
 }

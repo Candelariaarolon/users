@@ -53,12 +53,12 @@ func Register(request dto.RegisterRequest) (dto.RegisterResponse, error) {
 		return dto.RegisterResponse{}, fmt.Errorf("error creating user: %w", err)
 	}
 
-	// Send verification email
-	err = utils.SendVerificationEmail(createdUser.Email, verificationCode, createdUser.FirstName)
-	if err != nil {
-		log.Println("Error sending verification email:", err)
-		// Don't fail registration if email fails
-	}
+	// Send verification email asynchronously so it doesn't block the HTTP response
+	go func() {
+		if err := utils.SendVerificationEmail(createdUser.Email, verificationCode, createdUser.FirstName); err != nil {
+			log.Println("Error sending verification email:", err)
+		}
+	}()
 
 	return dto.RegisterResponse{
 		Message: "User registered successfully. Please check your email for verification code.",
@@ -96,12 +96,12 @@ func VerifyEmail(request dto.VerifyEmailRequest) (dto.VerifyEmailResponse, error
 		return dto.VerifyEmailResponse{}, fmt.Errorf("error verifying email: %w", err)
 	}
 
-	// Send welcome email
-	err = utils.SendWelcomeEmail(user.Email, user.FirstName)
-	if err != nil {
-		log.Println("Error sending welcome email:", err)
-		// Don't fail verification if welcome email fails
-	}
+	// Send welcome email asynchronously so it doesn't block the HTTP response
+	go func() {
+		if err := utils.SendWelcomeEmail(user.Email, user.FirstName); err != nil {
+			log.Println("Error sending welcome email:", err)
+		}
+	}()
 
 	// Generate access and refresh tokens
 	accessToken, refreshToken, err := utils.GenerateTokenPair(user.ID, user.IsAdmin)
